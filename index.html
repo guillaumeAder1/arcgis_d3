@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Color Ramp</title>
+    <link rel="stylesheet" href="http://js.arcgis.com/3.14/esri/css/esri.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+
+    <style>
+        html, body, #map {
+            height: 100%;
+            margin: 0;
+
+
+        }
+        body{
+            background-color: rgb(63,63,65);
+            color:rgb(255,255   ,255);
+        }
+        #map {
+            height:80%;
+            margin:25px;
+        }
+
+        #info {
+            color:rgb(210,210,210);
+            margin: 25px;
+            position: absolute;
+            bottom: 133px;
+            padding: 10px;
+            font: 14px Segoe UI;
+            width: 200px;
+            text-align: center;
+            border-radius: 0 10px 0 0;
+
+
+        }
+        .cube{
+            width: 120px;
+            height:40px;
+        }
+
+    </style>
+
+    <script type="text/javascript">
+        var rootPath = location.pathname.replace(/\/[^/]+$/, "");
+        dojoConfig = {
+            packages: [
+
+                { name: "myWidget", location: rootPath + "/widget" }
+
+
+            ]
+        };
+    </script>
+
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://js.arcgis.com/3.14/"></script>
+    <script>
+
+
+
+
+
+        require([
+            "esri/map", "esri/geometry/Extent",
+            "esri/layers/FeatureLayer", "esri/InfoTemplate", "esri/dijit/Legend",
+            "esri/renderers/SimpleRenderer", "esri/Color",
+            "esri/symbols/SimpleFillSymbol", "esri/symbols/SimpleLineSymbol",
+            "myWidget/colorRampESRI",
+            "dojo/domReady!"
+        ], function(
+                Map, Extent,
+                FeatureLayer, InfoTemplate, Legend,
+                SimpleRenderer, Color,
+                SimpleFillSymbol, SimpleLineSymbol,
+                colorRampESRI
+
+                ) {
+            var map = new Map("map", {
+                basemap: "dark-gray",
+                zoom:4,
+                extent: new Extent({"xmin":-18413374.365780927,"ymin":2225205.175611179,"xmax":-4304933.433019984,"ymax":8389087.136526152,"spatialReference":{"wkid":102100}})
+            });
+
+            var layer = new FeatureLayer("http://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/USA_County_Crops_2007/FeatureServer/0", {
+                outFields: ["*"],
+                infoTemplate: new InfoTemplate("${COUNTY}, ${STATE}", "<div style='font: 18px Segoe UI'>The percentage of the area of the county that represents farmland is <b>${M086_07:NumberFormat(places:0)}%</b>.</div>")
+            });
+
+            var legend = new Legend({
+                map: map,
+                layerInfos: [{ title: "Percentage of county area used for farming", layer: layer }]
+            }, "legend");
+
+            var wdgt = new colorRampESRI({ "map": map, "layer" : layer, "legend" : legend });
+            wdgt.layerAdded();
+
+
+            layer.on("load", function(){
+
+                wdgt.colorRamp(null);
+               /* var renderer = new SimpleRenderer(new SimpleFillSymbol().setOutline(new SimpleLineSymbol().setWidth(0.5)));
+                renderer.setColorInfo({
+                    field: "M086_07",
+                    minDataValue: 0,
+                    maxDataValue: 100,
+                    colors: [
+                        new Color([255, 255, 255]),
+                        new Color([127, 127, 0])
+                    ]
+                });
+                layer.setRenderer(renderer);
+                map.addLayer(layer);
+                legend.startup();*/
+            });
+
+
+            $(document).ready(function(){
+                var color = "";
+                $(".cube").hover(function(){
+                    color = $(this).css("background-color");
+                })
+                $(".cube").click(function(){
+                    wdgt.colorRamp(color);
+                })
+            })
+        });
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="row col-sm-12">
+        <h2>Change color Ramp for a map 1</h2>
+    </div>
+</div>
+<div>
+    <div id="map"></div>
+    <div id="info"><div id="legend"></div></div>
+</div>
+
+<div class="container">
+    <div class="row col-sm-12">
+        <h3>Select a new color</h3>
+    </div>
+    <div class="row col-sm-12">
+        <div class="bs-example" data-example-id="label-variants">
+
+            <!--<span class="label cube label-primary">Primary</span>-->
+            <!--<span class="label cube label-success">Success</span>-->
+            <!--<span class="label cube label-info">Info</span>-->
+            <!--<span class="label cube label-warning">Warning</span>-->
+            <!--<span class="label cube label-danger">Danger</span>-->
+            <button type="button" class="btn cube btn-primary">Blue</button>
+            <button type="button" class="btn cube btn-success">Green</button>
+            <button type="button" class="btn cube btn-info">Light blue</button>
+            <button type="button" class="btn cube btn-warning">Orange</button>
+            <button type="button" class="btn cube btn-danger">Red</button>
+        </div>
+    </div>
+</div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Circle Animation 1</title>
+    <link rel="stylesheet" href="http://js.arcgis.com/3.14/esri/css/esri.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="css/circlesd3.css" />
+
+    <style>
+        html, body, #map {
+            height: 100%;
+            margin: 0;
+
+
+        }
+        body{
+            background-color: rgb(63,63,65);
+            color:rgb(255,255   ,255);
+        }
+        #map {
+            height:80%;
+            margin:25px;
+            border:1px solid #4B4B4B;
+
+        }
+
+        #info {
+            color:rgb(210,210,210);
+            margin: 25px;
+            position: absolute;
+            bottom: 133px;
+            padding: 10px;
+            font: 14px Segoe UI;
+            width: 200px;
+            text-align: center;
+            border-radius: 0 10px 0 0;
+
+
+        }
+        .cube{
+
+            height:40px;
+        }
+
+        .btn{ width: 120px;}
+
+    </style>
+
+    <script type="text/javascript">
+        var rootPath = location.pathname.replace(/\/[^/]+$/, "");
+        dojoConfig = {
+            packages: [
+
+                { name: "myWidget", location: rootPath + "/widget" }
+
+
+            ]
+        };
+    </script>
+
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://js.arcgis.com/3.14/"></script>
+    <script>
+
+
+
+
+
+        require([
+            "esri/map",
+            "esri/layers/FeatureLayer",
+            "dojo/_base/array",
+            "dojo/dom",
+            "dojo/number",
+            "dojo/on",
+            "dojo/parser",
+            "dojo/ready"
+        ], function(
+                Map, FeatureLayer, array, dom, number, on, parser, ready
+
+
+                ) {
+
+            var layer, quantize;
+
+            var map = new Map("map", {
+                basemap: "dark-gray",
+                center:[139.742661, 35.371135],
+                zoom:10
+            });
+
+
+            var earthquakes = new FeatureLayer("http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Earthquakes/Since_1970/MapServer/0", {
+                id:"earthquakes",
+                styling:false
+            });
+
+            console.log(earthquakes)
+
+            // Apply D3's Quantitative Scales
+            if (earthquakes.surfaceType === "svg") {
+                // construct a linear quantitative scale with a discrete output range
+                // A scales input domain is the range of possible input data values
+                quantize = d3.scale.quantize().domain([0, 9]).range(d3.range(5));
+
+                on(earthquakes, "graphic-draw", function (evt) {
+                    var attrs = evt.graphic.attributes,
+                    Magnitude = (attrs && attrs.Magnitude) || undefined,
+                    range;
+                    range = quantize(Magnitude);
+                    var d =  new Date(attrs.Date_);
+
+                    evt.node.setAttribute("data-classification", range);
+                    evt.node.setAttribute("data-value", attrs.Magnitude);
+                    evt.node.setAttribute("data-date",  d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear());
+
+
+
+
+//                    d3.select("#earthquakes_layer").append("circle")
+//                            .attr("r" , 0)
+//                            .attr("cx" , position[0])
+//                            .attr("cy" , position[1])
+//                            .attr("stroke" , "#f72d3f")
+//                            .attr("fill" , "none");
+
+                    d3.select(evt.node).on("mouseover" , function(d,i){
+
+                        var position = d3.select(this).attr("path").split(" ");
+                        position = position[1].split(",");
+
+                        d3.select("#earthquakes_layer").append("circle")
+                                .attr("r" , 0)
+                                .attr("cx" , position[0])
+                                .attr("cy" , position[1])
+                                .attr("stroke" , "#f72d3f")
+                                .attr("fill" , "none")
+                                    .transition()
+                                    .duration(750)
+                                        .attr("r" , 150)
+                                        .style("opacity" , 0).each("end" , function(d){
+                                    d3.select(this).transition().duration(750).attr("r" , 0).style("opacity" , 1)
+                                })
+
+//                        d3.select("svg").insert("g" , function(){
+//                                    return d3.select(this).node().nextSibling
+//                                })
+//                                .append(function(){
+//                                    return cur
+//                                            .remove()
+//                                            .node();
+//                                })
+
+
+
+
+
+//                        console.log(d3.select(this).node().parentNode)
+//                        var toto = d3.select(this).node().parentNode;
+//                        d3.select(toto).insert("g").append("circle")
+//                                .attr("cx", 160)
+//                                .attr("xy", 520)
+//                                .attr("r" , 50)
+//                                .text(date);
+//
+//                        var date = d3.select(this).attr("data-date");
+//                        d3.select(this).insert("g").append("text")
+//                                .attr("x", 0)
+//                                .attr("y", 0)
+//                                .text(date);
+
+
+                       // d3.select(this).transition().duration(500).delay(i * .6).style("fill" , color).each("end", function(){
+//                        var curvalue = d3.select(this).attr("data-classification");
+//                        var curelement = d3.select(this);
+//                        curelement.append("g");
+
+                       // curelement.select("g").insert(curelement[0][0].outerHTML);
+//                        d3.select(this).transition().duration(500).attrTween("transform", function(d, i, a) {
+//                            return d3.interpolateString(a, 'scale(1)');
+//                        });
+
+                    })
+
+                });
+
+                createLegend();
+
+            } else {
+                alert("Your browser does not support SVG.\nPlease user a modern web browser that supports SVG.");
+            }
+            map.addLayer(earthquakes);
+
+            function createLegend(){
+                var swatchTemplate =
+                        '<div>' +
+                        '<svg width="24" height="24" version="1.1" xmlns="http://www.w3.org/2000/svg">' +
+                        '<path d="M 11 11 L 12 11 L 12 12 L 11 12 Z" data-classification="${classification}" />' +
+                        '</svg>' +
+                        '<span>${label}</span>' +
+                        '</div>';
+
+                var html = "", inverted, data, legend = dom.byId("legend2");
+
+                // quantize.range() returns the scale's current output range
+                array.forEach(quantize.range(), function (rangeVal) {
+                    // Returns the extent of values in the input domain [x0, x1] for the corresponding value in the output range y
+                    inverted = quantize.invertExtent(rangeVal);
+
+                    data = {
+                        label:number.format(inverted[0], { places:2 }) + " - " + number.format(inverted[1], { places:2 }),
+                        classification:rangeVal
+                    };
+                    html += esri.substitute(data, swatchTemplate);
+                });
+                legend.innerHTML = legend.innerHTML + html;
+
+            }
+
+            earthquakes.on("load", function(){
+
+            });
+            earthquakes.on("graphic-draw" , function(e){
+
+            })
+            earthquakes.on("update-start" , function(e){
+
+            });
+            earthquakes.on("update-end" , function(){
+
+            })
+
+            $(document).ready(function(){
+
+            });
+
+        });
+
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="row col-sm-12">
+        <h2>Circle Animation 1.</h2>
+    </div>
+</div>
+<div>
+    <div id="map"></div>
+    <div id="info"><div id="legend"></div></div>
+    <div id="legend2"></div>
+</div>
+
+<div class="container">
+    <!--<div class="row col-sm-12">-->
+        <!--<h3>Select a new color</h3>-->
+    <!--</div>-->
+    <!--<div class="row col-sm-12">-->
+        <!--<div class="bs-example" data-example-id="label-variants">-->
+
+            <!--<button type="button" class="btn cube btn-primary">Blue</button>-->
+            <!--<button type="button" class="btn cube btn-success">Green</button>-->
+            <!--<button type="button" class="btn cube btn-info">Light blue</button>-->
+            <!--<button type="button" class="btn cube btn-warning">Orange</button>-->
+            <!--<button type="button" class="btn cube btn-danger">Red</button>-->
+        <!--</div>-->
+    <!--</div>-->
+
+</div>
+
+
+
+</body>
+</html>

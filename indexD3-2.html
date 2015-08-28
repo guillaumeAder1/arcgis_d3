@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Color Ramp</title>
+    <link rel="stylesheet" href="http://js.arcgis.com/3.14/esri/css/esri.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+
+    <style>
+        html, body, #map {
+            height: 100%;
+            margin: 0;
+
+
+        }
+        body{
+            background-color: rgb(63,63,65);
+            color:rgb(255,255   ,255);
+        }
+        #map {
+            height:80%;
+            margin:25px;
+        }
+
+        #info {
+            color:rgb(210,210,210);
+            margin: 25px;
+            position: absolute;
+            bottom: 133px;
+            padding: 10px;
+            font: 14px Segoe UI;
+            width: 200px;
+            text-align: center;
+            border-radius: 0 10px 0 0;
+
+
+        }
+        .cube{
+
+            height:40px;
+        }
+
+        .btn{ width: 120px;}
+
+    </style>
+
+    <script type="text/javascript">
+        var rootPath = location.pathname.replace(/\/[^/]+$/, "");
+        dojoConfig = {
+            packages: [
+
+                { name: "myWidget", location: rootPath + "/widget" }
+
+
+            ]
+        };
+    </script>
+
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://js.arcgis.com/3.14/"></script>
+    <script>
+
+
+
+
+
+        require([
+            "esri/map", "esri/geometry/Extent",
+            "esri/layers/FeatureLayer", "esri/InfoTemplate", "esri/dijit/Legend",
+            "esri/renderers/SimpleRenderer", "esri/Color",
+            "esri/symbols/SimpleFillSymbol", "esri/symbols/SimpleLineSymbol",
+            "myWidget/colorRampESRID3-2",
+            "dojo/domReady!"
+        ], function(
+                Map, Extent,
+                FeatureLayer, InfoTemplate, Legend,
+                SimpleRenderer, Color,
+                SimpleFillSymbol, SimpleLineSymbol,
+                colorRampESRI
+
+                ) {
+            var map = new Map("map", {
+                basemap: "dark-gray",
+                zoom:4,
+                extent: new Extent({"xmin":-18413374.365780927,"ymin":2225205.175611179,"xmax":-4304933.433019984,"ymax":8389087.136526152,"spatialReference":{"wkid":102100}})
+            });
+
+
+//            var url = "http://sampleserver6.arcgisonline.com/arcgis/rest/services/WorldTimeZones/MapServer/2";//
+//            var template = new InfoTemplate("World Regions", "Region: ${REGION}");//
+//            var fl = new FeatureLayer(url, {
+//                id: "world-regions",
+//                infoTemplate: template,//
+//            });
+//            map.addLayer(fl , 10);
+
+            var url = "http://localhost:6080/arcgis/rest/services/guillaumeProjectHostelMap/MapServer/2";
+
+           // var template = new InfoTemplate("World Regions", "Region: ${REGION}");
+
+            var fl1 = new FeatureLayer(url, {
+                id: "cdfishfdjus-regions",
+                //infoTemplate: template,
+
+            });
+            map.addLayer(fl1 , 12);
+
+
+
+            var layer = new FeatureLayer("http://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/USA_County_Crops_2007/FeatureServer/0", {
+                outFields: ["*"],
+                infoTemplate: new InfoTemplate("${COUNTY}, ${STATE}", "<div style='font: 18px Segoe UI'>The percentage of the area of the county that represents farmland is <b>${M086_07:NumberFormat(places:0)}%</b>.</div>")
+            });
+
+            var legend = new Legend({
+                map: map,
+                layerInfos: [{ title: "Percentage of county area used for farming", layer: layer }]
+            }, "legend");
+
+            var wdgt = new colorRampESRI({ "map": map, "layer" : layer, "legend" : legend });
+            wdgt.layerAdded();
+
+
+
+            var color = "";
+            layer.on("load", function(){
+               wdgt.colorRamp(null);
+            });
+            layer.on("graphic-draw" , function(e){
+                //console.log("end")
+               // wdgt.d3colorFct(color);
+            })
+            layer.on("update-start" , function(e){
+                alert("start")
+                console.log(this)
+                //this.setVisibility(false)
+                //e.preventDefault();
+                //layer.setVisibility(false);
+
+
+
+            });
+            layer.on("update-end" , function(){
+
+
+                //$( "g#totosvg").remove();
+               // $( "<svg id='totosvg' height='400' widht='1338' style='overflow: visible; position:absolute;'>" ).appendTo( "body" );
+                //$( "<g id='totosvg'>" ).appendTo( "body div#map_layers svg" );
+                $("#graphicsLayer2_layer").clone().appendTo("body div#map_layers svg");
+
+            })
+
+
+            $(document).ready(function(){
+
+                $(".cube").hover(function(){
+                    color = $(this).css("background-color");
+                })
+                $(".cube").click(function(){
+
+
+
+                    wdgt.d3colorFct(color);
+//                    var totalElement = d3.select("body").selectAll("path")[0].length;
+//
+//                    d3.select("body").selectAll("path").each( function(d,i){
+//
+//                        d3.select(this).transition().duration(500).delay(i * .6).style("fill" , color).each("end", function(){
+//
+//                            if(i + 1 == totalElement){
+//                                wdgt.colorRamp(color);
+//                            }
+//                        });
+//                    });
+                });
+
+                $(".chart").click(function(){
+                    var type = $(this).text();
+                    alert(type);
+                    wdgt.colorRamp(color , type)
+
+                })
+
+
+            })
+        });
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="row col-sm-12">
+        <h2>Change color Ramp for a map 2 - 2</h2>
+    </div>
+</div>
+<div>
+    <div id="map"></div>
+    <div id="info"><div id="legend"></div></div>
+</div>
+
+<div class="container">
+    <div class="row col-sm-12">
+        <h3>Select a new color</h3>
+    </div>
+    <div class="row col-sm-12">
+        <div class="bs-example" data-example-id="label-variants">
+
+            <button type="button" class="btn cube btn-primary">Blue</button>
+            <button type="button" class="btn cube btn-success">Green</button>
+            <button type="button" class="btn cube btn-info">Light blue</button>
+            <button type="button" class="btn cube btn-warning">Orange</button>
+            <button type="button" class="btn cube btn-danger">Red</button>
+        </div>
+    </div>
+    <div class="row col-sm-12">
+        <h3>Select a representation</h3>
+    </div>
+    <!--<div class="row col-sm-12">-->
+        <!--<div class="bs-example" data-example-id="label-variants">-->
+            <!--<button type="button" class="btn chart gradient btn-primary">Gradient</button>-->
+            <!--<button type="button" class="btn chart circle btn-primary">Circle</button>-->
+        <!--</div>-->
+    <!--</div>-->
+</div>
+
+
+
+</body>
+</html>

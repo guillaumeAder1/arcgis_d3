@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+<title>Circle Animation 1.3</title>
+<link rel="stylesheet" href="http://js.arcgis.com/3.14/esri/css/esri.css">
+<link rel="stylesheet" href="css/bootstrap.min.css"/>
+
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/vader/jquery-ui.css" rel="stylesheet">
+
+<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
+<script src="js/bootstrap.min.js"></script>
+
+<link rel="stylesheet" href="css/circlesd3.css" />
+
+<style>
+    html, body, #map {
+        height: 100%;
+        margin: 0;
+
+
+    }
+    body{
+        background-color: rgb(63,63,65);
+        color:rgb(255,255,255);
+    }
+    #map {
+        height:80%;
+        /*margin:25px;*/
+        border:1px solid #4B4B4B;
+
+    }
+
+    #info {
+        color:rgb(210,210,210);
+        margin: 25px;
+        position: absolute;
+        bottom: 133px;
+        padding: 10px;
+        font: 14px Segoe UI;
+        width: 200px;
+        text-align: center;
+        border-radius: 0 10px 0 0;
+
+
+    }
+    .cube{
+
+        height:40px;
+    }
+
+    .btn{ width: 120px;}
+
+</style>
+
+<script type="text/javascript">
+    var rootPath = location.pathname.replace(/\/[^/]+$/, "");
+    dojoConfig = {
+        packages: [
+
+            { name: "myWidget", location: rootPath + "/widget" }
+
+
+        ]
+    };
+</script>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src="js/d3Pie.js"></script>
+<script src="http://js.arcgis.com/3.14/"></script>
+<script>
+
+require([
+    "esri/map",
+    "esri/layers/FeatureLayer",
+    "dojo/_base/array",
+    "dojo/dom",
+    "dojo/number",
+    "dojo/on",
+    "dojo/parser",
+    "dojo/ready"
+
+], function(
+        Map,
+        FeatureLayer,
+        array,
+        dom,
+        number,
+        on,
+        parser,
+        ready
+    ) {
+
+    var layer, quantize;
+
+    var circle;
+    var popupDetailsContainer;
+    var popupDetailsText;
+
+    var map = new Map("map", {
+        basemap: "dark-gray",
+        center:[139.742661, 35.371135],
+        zoom:2
+
+    });
+
+    var inited = false;
+    var sliderInited = false;
+
+    var earthquakes = new FeatureLayer("http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Earthquakes/Since_1970/MapServer/0", {
+        id:"earthquakes",
+        styling:false
+    });
+
+    if (earthquakes.surfaceType === "svg") {
+
+        quantize = d3.scale.quantize().domain([0, 9]).range(d3.range(5));
+        var i = 0;
+
+        on(earthquakes , "graphic-add", function(){
+            // create On Circle element when layer is loaded
+            if(i > 0 && i < 2){
+                d3.select("#earthquakes_layer").append("circle").attr("id" , "animatedCircle");
+                d3.select("#earthquakes_layer").append("rect").attr("id" , "popupDetails");
+                d3.select("#earthquakes_layer").append("text").attr("id" , "popupDetailsText");
+            }
+            i ++;
+        })
+
+        on(earthquakes, "graphic-draw", function (evt) {
+            var attrs = evt.graphic.attributes,
+                    Magnitude = (attrs && attrs.Magnitude) || undefined,
+                    range;
+            range = quantize(Magnitude);
+            var d =  new Date(attrs.Date_);
+
+            evt.node.setAttribute("data-classification", range);
+            evt.node.setAttribute("data-value", attrs.Magnitude);
+            evt.node.setAttribute("data-date",  d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear());
+            evt.node.setAttribute("data-dateTimestamp", attrs.Date_);
+
+            d3.select(evt.node).on("mouseover" , function(d,i){
+
+                var position = d3.select(this).attr("path").split(" ");
+                position = position[1].split(",");
+                animatedCircle(this , position);
+
+                d3.select(this).on("mouseout", function(){
+
+                    circle.transition().duration(10).attr("r" , 0);
+
+                });
+            })
+
+            d3.select(evt.node).on("click" , function(d,i){
+                var position = d3.select(this).attr("path").split(" ");
+                position = position[1].split(",");
+
+                displayDetails(this , position);
+            })
+
+        });
+
+    } else {
+        alert("Your browser does not support SVG.\nPlease user a modern web browser that supports SVG.");
+    }
+
+    map.addLayer(earthquakes);
+
+    function initPiechart(arrayData){
+        d3.select("#pieChart").remove();
+        d3.select("#piediv").append("svg").attr("id" , "pieChart");
+
+       // d3.selectAll("")
+
+        var o = [
+            {color : "rgb(156, 85, 242)" , label: "Autres personnes sans activité pro" , value: 654},
+            {color : "rgb(000, 85, 255)" , label: "Auxcvxcvxcvnnes sans actxcvxcvxivité pro" , value: 123}
+        ];
+
+
+
+        var p = new pieChart(arrayData , 50 , 30, 250 , 0 , 0 , "#pieChart" );
+        p.setAnimType(pieChart.CIRCULAR);
+        p.init();
+        p.hideLabel();
+
+    }
+
+    function dataPiechart(){
+
+        var t1 = d3.selectAll("#earthquakes_layer path[data-classification='1']")[0].length;
+        var t2 = d3.selectAll("#earthquakes_layer path[data-classification='2']")[0].length;
+        var t3 = d3.selectAll("#earthquakes_layer path[data-classification='3']")[0].length;
+        var t4 = d3.selectAll("#earthquakes_layer path[data-classification='4']")[0].length;
+        var t5 = d3.selectAll("#earthquakes_layer path[data-classification='5']")[0].length;
+
+        var dataPie = [
+            {label: "Magintude 1" , value: t1 , color: "#FFE6E6"},
+            {label: "Magintude 2" , value: t2 , color: "#FFB2B2"},
+            {label: "Magintude 3" , value: t3 , color: "#FF8080"},
+            {label: "Magintude 4" , value: t4 , color: "#FF4D4D"},
+            {label: "Magintude 5" , value: t5 , color: "#FF3333"}
+        ];
+
+        initPiechart(dataPie);
+    }
+
+    function initSlider(){
+
+        var dateList = [];
+
+        if(sliderInited){
+            d3.selectAll("#earthquakes_layer path").each(function(d,i){
+
+                var min =  $( "#slider" ).slider("option" , "min");
+                var max =  $( "#slider" ).slider("option" , "max");
+
+                if(d3.select(this).attr("data-dateTimestamp")>min && d3.select(this).attr("data-dateTimestamp") < max){
+                    dateList.push(d3.select(this).attr("data-dateTimestamp"));
+                }else {
+
+                    d3.select(this).style("opacity" , 0);
+
+                }
+            });
+
+        }else {
+
+            d3.selectAll("#earthquakes_layer path").each(function(d,i){
+                dateList.push(d3.select(this).attr("data-dateTimestamp"));
+            });
+
+            sliderInited = true
+        }
+
+
+        dateList.sort(function(a, b){return b-a});
+
+        initSliderJQ(dateList);
+        dataPiechart();
+
+    }
+
+    function initSliderJQ(dateList){
+        sliderInited = true;
+        $( "#slider" ).slider("option" , "min" , Number(dateList[dateList.length-1]));
+        $( "#slider" ).slider("option" , "max" , Number(dateList[0]));
+        $( "#slider" ).slider("option" , "values" , [Number(dateList[dateList.length-1]) , Number(dateList[0])]);
+        updateRangeYear();
+    }
+
+    function displayDetails(node , position){
+
+        var data = {};
+        data.value = d3.select(node).attr("data-value");
+        data.date = d3.select(node).attr("data-date");
+        data.classification = d3.select(node).attr("data-classification");
+
+        popupDetailsContainer = d3.select("#popupDetails").attr("x" , Number(position[0]) + 10 )
+                .attr("y" , Number(position[1]) - 20)
+                .attr("width" , 150)
+                .attr("height" , 30)
+                .style("opacity" , 0)
+                .attr("fill" , "black").transition().duration(500)
+                .style("opacity" , 0.3);
+
+        popupDetailsText = d3.select("#popupDetailsText").attr("x" , Number(position[0]) + 20)
+                .attr("y" , Number(position[1]))
+                .attr("fill" , "#D2D2D2")
+                .style("opacity" , 0)
+                .text( "Date : " +  data.date ).transition().duration(500)
+                .style("opacity" , 0.6);
+
+
+    }
+
+    function animatedCircle(node , position){
+
+        // var el = d3.select(node).attr("data-classification");
+//                var position = d3.select(node).attr("path").split(" ");
+//                position = position[1].split(",");
+
+        var color = d3.select(node).style("fill")
+
+        circle = d3.select("#animatedCircle")
+                .attr("stroke" , "#f72d3f")
+                .attr("stroke-width" , 3)
+                .attr("fill" , "none")
+                .attr("r" , 0)
+                .style("opacity" , 1)
+                .attr("cx" , position[0])
+                .attr("cy" , position[1]);
+
+        repeat();
+
+        function repeat (){
+            circle.attr("r" , 0).style("opacity" , 1).transition()
+                    .duration(750)
+                    .attr("r" , 100).style("opacity" , 0).each("end",repeat);
+        }
+    }
+
+
+
+    earthquakes.on("load", function(){
+
+    });
+    earthquakes.on("graphic-draw" , function(e){
+
+    })
+    earthquakes.on("update-start" , function(e){
+
+    });
+    earthquakes.on("update-end" , function(){
+
+        initSlider();
+
+    })
+    $(document).ready(function(){
+        // slider control Date
+        $( "#slider" ).slider({
+            range:true,
+            create: function( event, ui ) {
+
+            },
+            slide: function( event, ui ) {
+                // when value change
+                // - Update circle opcaity on the map
+                // - update the pie chart
+                sortbyYear(ui);
+                updateRangeYear();
+                dataPiechart();
+            }
+
+        });
+        // Slider for magnitude
+        $( "#sliderMagnitude" ).slider({
+            range:true,
+            min: 0,
+            max: 5,
+            values: [0,5],
+            create: function( event, ui ) {
+
+            },
+            slide: function( event, ui ) {
+
+                sortbyMagnitude(ui);
+            },
+            stop: function(){
+                updateMagnSelected();
+
+            }
+
+        });
+
+//        $(".ui-slider-range.ui-widget-header.ui-corner-all").draggable({
+//            axis: "x",
+//            start: function(e, ui){
+//                console.log(ui)
+//                $("#slider").slider("option" , "min" ,  ui.offset.left + 100000)
+//            },
+//            stop: function(){
+//
+//            }
+//
+//        });
+    });
+    function convertDate(time){
+        var d = new Date(time);
+        return d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear()
+    }
+
+    function updateRangeYear(){
+        $("#rangeyear").text("from " + convertDate($("#slider").slider("option" , "min")) + " to " + convertDate($("#slider").slider("option" , "max")))
+    }
+
+    function updateMagnSelected(){
+
+        $("#rangeMagnitude").text("Between : " + $("#sliderMagnitude").slider("option" , "values")[0] + " and " + $("#sliderMagnitude").slider("option" , "values")[1] )
+    }
+
+    function sortbyMagnitude(ui){
+
+        var year = $("#slider").slider("option" , "values");
+
+        d3.selectAll("#earthquakes_layer path").each(function(d,i){
+
+            if(d3.select(this).attr("data-classification") < ui.values[0] || d3.select(this).attr("data-classification") > ui.values[1]
+                || d3.select(this).attr("data-dateTimestamp") < year[0] || d3.select(this).attr("data-dateTimestamp") > year[1]
+                    ){
+                d3.select(this).transition().duration(250).style("opacity" , 0);
+            } else {
+                d3.select(this).transition().duration(250).style("opacity" , 1);
+            }
+
+        })
+    }
+
+    function sortbyYear(ui){
+        var magn = $("#sliderMagnitude").slider("option" , "values")
+
+        d3.selectAll("#earthquakes_layer path").each(function(d,i){
+
+            if(d3.select(this).attr("data-dateTimestamp") < ui.values[0] || d3.select(this).attr("data-dateTimestamp") > ui.values[1]
+            || d3.select(this).attr("data-classification") < magn[0] || d3.select(this).attr("data-classification") > magn[1]
+                ){
+                d3.select(this).transition().duration(250).style("opacity" , 0);
+            } else {
+                d3.select(this).transition().duration(250).style("opacity" , 1);
+            }
+
+        })
+    }
+
+});
+
+</script>
+</head>
+<body>
+<div class="container">
+    <div class="row col-sm-12">
+        <h2>Circle Animation 1.3 (Popup)</h2>
+    </div>
+</div>
+<div>
+    <div class="container">
+        <div class="row col-sm-12">
+            <div id="map"></div>
+            <div id="info"><div id="legend"></div></div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row col-sm-12">
+            <div id="legend2"></div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row col-md-9">
+
+            <h4>Select by Years</h4>
+            <div id="rangeyear"></div>
+            <br/>
+
+            <div class="row col-sm-12">
+                <div id="slider"></div>
+            </div>
+
+        <br/>
+            <h4>Select by Magnitude</h4>
+            <div id="rangeMagnitude"></div>
+            <br/>
+
+            <div class="row col-sm-12">
+                <div id="sliderMagnitude"></div>
+            </div>
+
+
+    </div>
+    <div class="row col-md-3">
+
+            <h4>Pie chart / magnitude</h4>
+
+        <div class="row col-sm-12">
+            <div id="piediv"></div>
+        </div>
+    </div>
+
+</div>
+
+
+
+</body>
+</html>
