@@ -71,6 +71,20 @@
         font-family: 11px;
     }
 
+    #detailsDiv{
+        opacity:0;
+        padding:10px;
+
+
+        /*width : 200px;*/
+        height:115px;
+        position:absolute;
+        bottom:0px;
+        top: auto;
+
+
+    }
+
 </style>
 
 <script type="text/javascript">
@@ -197,7 +211,7 @@ require([
         d3.select("#piediv").append("svg").attr("id" , "pieChart");
 
         var divelem = (_intialised) ? "#piediv" : "#chart";
-        if(!_intialised)map.centerAndZoom([139.742661, 35.371135], 5)
+        if(!_intialised)map.centerAndZoom([-4, 45], 4)
         _intialised = true;
 
 
@@ -347,20 +361,30 @@ require([
         data.date = d3.select(node).attr("data-date");
         data.classification = d3.select(node).attr("data-classification");
 
-        popupDetailsContainer = d3.select("#popupDetails").attr("x" , Number(position[0]) + 10 )
-                .attr("y" , Number(position[1]) - 20)
-                .attr("width" , 150)
-                .attr("height" , 30)
-                .style("opacity" , 0)
-                .attr("fill" , "black").transition().duration(500)
-                .style("opacity" , 0.3);
 
-        popupDetailsText = d3.select("#popupDetailsText").attr("x" , Number(position[0]) + 20)
-                .attr("y" , Number(position[1]))
-                .attr("fill" , "#D2D2D2")
-                .style("opacity" , 0)
-                .text( "Date : " +  data.date ).transition().duration(500)
-                .style("opacity" , 0.6);
+       // $("#detailsDiv").css()
+        d3.select("#detailsDiv").transition().duration(250).style("opacity" , 0)
+                .each("end", function(){
+                    $("#dateSpan").text(data.date);
+                    $("#magnitudeSpan").text(data.value);
+                    $("#classificationSpan").text(data.classification);
+                })
+                .transition().duration(500).style("opacity" , 1);
+
+//        popupDetailsContainer = d3.select("#popupDetails").attr("x" , Number(position[0]) + 10 )
+//                .attr("y" , Number(position[1]) - 20)
+//                .attr("width" , 150)
+//                .attr("height" , 30)
+//                .style("opacity" , 0)
+//                .attr("fill" , "black").transition().duration(500)
+//                .style("opacity" , 0.3);
+//
+//        popupDetailsText = d3.select("#popupDetailsText").attr("x" , Number(position[0]) + 20)
+//                .attr("y" , Number(position[1]))
+//                .attr("fill" , "#D2D2D2")
+//                .style("opacity" , 0)
+//                .text( "Date : " +  data.date ).transition().duration(500)
+//                .style("opacity" , 0.6);
 
 
     }
@@ -548,14 +572,26 @@ require([
 <body>
 <div class="container">
     <div class="row col-sm-12">
-        <h2 >Earthquakes around the world - from 1970 to 2009</h2>
+        <h1 >Earthquakes around the world - from 1970 to 2009</h1>
     </div>
 </div>
 <div>
     <div class="container">
         <div class="row col-sm-12">
+
             <div id="map"></div>
+
             <div id="info"><div id="legend"></div></div>
+            <div id="detailsDiv">
+                <h4><strong>Details</strong></h4>
+                <span>Date : </span><span id="dateSpan"></span>
+                <br/>
+                <span>Magnitude : </span><span id="magnitudeSpan"></span>
+                <br/>
+                <span>Class : </span><span id="classificationSpan"></span>
+            </div>
+
+
         </div>
     </div>
     <div class="container">
