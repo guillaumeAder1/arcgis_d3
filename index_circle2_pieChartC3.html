@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
-<title>Circle Animation 1.3</title>
+<title>Earthquakes around the world - from 1970 to 2009</title>
 <link rel="stylesheet" href="http://js.arcgis.com/3.14/esri/css/esri.css">
 <link rel="stylesheet" href="css/bootstrap.min.css"/>
 
@@ -47,6 +47,13 @@
         border-radius: 0 10px 0 0;
 
 
+    }
+
+    .glyphicon{
+        padding:3px;
+        border: 1px solid #696767;
+        border-radius: 3px;
+        color:#adadad;
     }
     .cube{
 
@@ -107,7 +114,8 @@ require([
     var map = new Map("map", {
         basemap: "dark-gray",
         //center:[139.742661, 35.371135],
-        zoom:1
+        zoom:1,
+        logo:false, showAttribution:false
 
     });
 
@@ -162,8 +170,9 @@ require([
             d3.select(evt.node).on("click" , function(d,i){
                 var position = d3.select(this).attr("path").split(" ");
                 position = position[1].split(",");
-
-                displayDetails(this , position);
+                if(d3.select(this).style("opacity") == 1){
+                    displayDetails(this , position);
+                }
             })
 
         });
@@ -264,52 +273,62 @@ require([
 
         var dateList = [];
 
-        var minY =  $( "#slider" ).slider("option" , "min");
-        var maxY =  $( "#slider" ).slider("option" , "max");
 
-        var minC =  $( "#sliderMagnitude" ).slider("option" , "min");
-        var maxC =  $( "#sliderMagnitude" ).slider("option" , "max");
 
         if(sliderInited){
+
+            var byyear =  $( "#slider" ).slider("option" , "values");
+            // var maxY =  $( "#slider" ).slider("option" , "max");
+            var magnit =  $( "#sliderMagnitude" ).slider("option" , "values");
+            //var maxC =  $( "#sliderMagnitude" ).slider("option" , "max");
+            console.log(byyear , magnit)
             d3.selectAll("#earthquakes_layer path").each(function(d,i){
 
-
-
-
-                if(d3.select(this).attr("data-dateTimestamp") > minY
-                && d3.select(this).attr("data-dateTimestamp") < maxY
-                && d3.select(this).attr("data-classification") > minC
-                && d3.select(this).attr("data-classification") < maxC ){
+                if(d3.select(this).attr("data-dateTimestamp") > byyear[0]
+                || d3.select(this).attr("data-dateTimestamp") < byyear[1]
+                || d3.select(this).attr("data-classification") > magnit[0]
+                || d3.select(this).attr("data-classification") < magnit[1] ){
                     dateList.push(d3.select(this).attr("data-dateTimestamp"));
                 }else {
-
                     d3.select(this).style("opacity" , 0);
-
                 }
             });
 
-        }else {
+        } else {
 
             d3.selectAll("#earthquakes_layer path").each(function(d,i){
                 dateList.push(d3.select(this).attr("data-dateTimestamp"));
             });
-            sliderInited = true
+
+
+            dateList.sort(function(a, b){return b-a});
+
+            initSliderJQ(dateList);
+
+
         }
 
 
-        dateList.sort(function(a, b){return b-a});
-
-        initSliderJQ(dateList);
         dataPiechart();
+        updateRangeYear();
 
     }
 
     function initSliderJQ(dateList){
-       // sliderInited = true;
-        $( "#slider" ).slider("option" , "min" , Number(dateList[dateList.length-1]));
-        $( "#slider" ).slider("option" , "max" , Number(dateList[0]));
-        $( "#slider" ).slider("option" , "values" , [Number(dateList[dateList.length-1]) , Number(dateList[0])]);
-        updateRangeYear();
+        console.log( $( "#slider" ).slider("option" , "min" ) ,
+        $( "#slider" ).slider("option" , "max" ) ,
+        $( "#slider" ).slider("option" , "values" ));
+
+        if(!sliderInited){
+            $( "#slider" ).slider("option" , "min" , Number(dateList[dateList.length-1]));
+            $( "#slider" ).slider("option" , "max" , Number(dateList[0]));
+            $( "#slider" ).slider("option" , "values" , [Number(dateList[dateList.length-1]) , Number(dateList[0])]);
+
+            sliderInited = true;
+
+        }
+
+
     }
 
     function displayDetails(node , position){
@@ -354,7 +373,10 @@ require([
                 .attr("cx" , position[0])
                 .attr("cy" , position[1]);
 
-        repeat();
+        if(d3.select(node).style("opacity") == 1){
+            repeat();
+
+        }
 
         function repeat (){
             circle.attr("r" , 0).style("opacity" , 1).transition()
@@ -363,24 +385,32 @@ require([
         }
     }
 
-
-
     earthquakes.on("load", function(){
-
+alert("load")
     });
     earthquakes.on("graphic-draw" , function(e){
+       // alert("graphic draw")
+       // console.log(e)
 
     })
     earthquakes.on("update-start" , function(e){
+//alert("okok")
+        alert("update start")
+
+        //d3.selectAll("#earthquakes_layer path").style("opacity" , 0);
 
     });
     earthquakes.on("update-end" , function(){
 
         initSlider();
+        sortresults();
 
     })
     $(document).ready(function(){
         // slider control Date
+
+        $("span.glyphicon").tooltip();
+
         $( "#slider" ).slider({
             range:true,
             create: function( event, ui ) {
@@ -390,9 +420,15 @@ require([
                 // when value change
                 // - Update circle opcaity on the map
                 // - update the pie chart
-                sortbyYear(ui);
+               // sortbyYear(ui);
+
+                sortresults();
+
                 updateRangeYear();
                 dataPiechart();
+            },
+            stop:function(evt,ui){
+                sortresults();
             }
 
         });
@@ -406,10 +442,12 @@ require([
 
             },
             slide: function( event, ui ) {
+                sortresults();
 
-                sortbyMagnitude(ui);
+                //sortbyMagnitude(ui);
             },
             stop: function(){
+                sortresults();
                 updateMagnSelected();
 
             }
@@ -425,26 +463,49 @@ require([
 //            stop: function(){
 //
 //            }
-//
 //        });
     });
+    function sortresults(){
+
+        //console.log($("#slider").slider("option" , "values") , $("#sliderMagnitude").slider("option" , "values"))
+        var byYear = $("#slider").slider("option" , "values");
+        var byMagn = $("#sliderMagnitude").slider("option" , "values");
+        d3.selectAll("#earthquakes_layer path").each(function(d,i){
+
+            if(d3.select(this).attr("data-classification") < byMagn[0]
+                    || d3.select(this).attr("data-classification") > byMagn[1]
+                    || d3.select(this).attr("data-dateTimestamp") < byYear[0]
+                    || d3.select(this).attr("data-dateTimestamp") > byYear[1]
+                    ){
+                d3.select(this).transition().duration(250).style("opacity" , 0);
+            } else {
+                d3.select(this).transition().duration(250).style("opacity" , 1);
+            }
+
+        })
+
+
+    }
+
     function convertDate(time){
         var d = new Date(time);
         return d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear()
     }
 
     function updateRangeYear(){
-        $("#rangeyear").text("from " + convertDate($("#slider").slider("option" , "min")) + " to " + convertDate($("#slider").slider("option" , "max")))
+        $("#globalrange").text("Global : from " + convertDate($("#slider").slider("option" , "min")) + " to " + convertDate($("#slider").slider("option" , "max")))
+        $("#rangeyear").text("Selected : from " + convertDate($("#slider").slider("option" , "values")[0]) + " to " + convertDate($("#slider").slider("option" , "values")[1]))
     }
 
     function updateMagnSelected(){
-
         $("#rangeMagnitude").text("Between : " + $("#sliderMagnitude").slider("option" , "values")[0] + " and " + $("#sliderMagnitude").slider("option" , "values")[1] )
     }
 
     function sortbyMagnitude(ui){
 
         var year = $("#slider").slider("option" , "values");
+
+        console.log(ui.values , year)
 
         d3.selectAll("#earthquakes_layer path").each(function(d,i){
 
@@ -460,7 +521,7 @@ require([
     }
 
     function sortbyYear(ui){
-        var magn = $("#sliderMagnitude").slider("option" , "values")
+        var magn = $("#sliderMagnitude").slider("option" , "values");
 
         d3.selectAll("#earthquakes_layer path").each(function(d,i){
 
@@ -482,7 +543,7 @@ require([
 <body>
 <div class="container">
     <div class="row col-sm-12">
-        <h2>Circle Animation 1.3 (Popup)</h2>
+        <h2 >Earthquakes around the world - from 1970 to 2009</h2>
     </div>
 </div>
 <div>
@@ -502,7 +563,14 @@ require([
 <div class="container">
     <div class="row col-md-6">
 
-            <h4>Select by Years</h4>
+            <h4 title="This layer represents all the earthquakes around the word from 1970 to 2009 classed by magnitude" >
+                Select by Years
+                <span title="Select a year range to sort the data (from 1970 to 2009)" class="glyphicon glyphicon-info-sign" aria-hidden="true">
+                </span>
+            </h4>
+
+            <div id="globalrange"></div>
+            <br/>
             <div id="rangeyear"></div>
             <br/>
 
@@ -511,7 +579,18 @@ require([
             </div>
 
         <br/>
-            <h4>Select by Magnitude</h4>
+            <h4>
+                Select by Magnitude
+                <span title="Select a magnitude range to sort the data (from 0 to 5)" class="glyphicon glyphicon-info-sign" aria-hidden="true">
+                </span>
+
+            </h4>
+
+
+
+
+
+
             <div id="rangeMagnitude"></div>
             <br/>
 
@@ -526,14 +605,22 @@ require([
     <!--  -->
     <div class="row col-md-6">
         <div class="col-sm-6">
-            <h4>Current extend magnitude</h4>
+            <h4>
+                Current extend magnitude
+                <span title="This pie chart analyse the earthquakes by magnitude for the current extent visible on the map" class="glyphicon glyphicon-info-sign" aria-hidden="true">
+                </span>
+            </h4>
 
             <div class="row col-sm-12">
                 <div id="piediv"></div>
             </div>
         </div>
         <div class="col-sm-6">
-            <h4>Global magnitude chart</h4>
+            <h4>
+                Global magnitude chart (From 1970 to 2009)
+                <span title="this pie chart is a global analyse for all the earthquakes from 1970 to 2009 including all magnitude levels" class="glyphicon glyphicon-info-sign" aria-hidden="true">
+                </span>
+            </h4>
             <div id="chart"></div>
         </div>
 
