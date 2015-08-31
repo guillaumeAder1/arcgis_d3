@@ -71,6 +71,10 @@
         font-family: 11px;
     }
 
+    select, option{
+        background:rgb(63,63,65);
+    }
+
     #detailsDiv{
         opacity:0;
         padding:10px;
@@ -165,7 +169,7 @@ require([
         })
 
         on(earthquakes, "graphic-draw", function (evt) {
-            console.log(evt.graphic)
+
             var attrs = evt.graphic.attributes,
                     Magnitude = (attrs && attrs.Magnitude) || undefined,
                     range;
@@ -418,6 +422,21 @@ require([
 
         $("span.glyphicon").tooltip();
 
+        var defaultYearSlider = $('#year1');
+
+        $("checkbox").on("click", function(){
+            alert("okok")
+            var ckbox = $('#year1');
+            if (ckbox.is(':checked')) {
+                $("#year2").removeAttr("checked");
+                defaultYearSlider = $('#year1');
+            } else {
+                ckbox.removeAttr("checked");
+                defaultYearSlider = $('#year2');
+            }
+        })
+
+
         $( "#slider" ).slider({
             range:true,
             create: function( event, ui ) {
@@ -432,8 +451,21 @@ require([
                 sortresults();
             }
         });
-        $( "#slider" ).slider().find(".ui-slider-handle")
-                .attr("title", "Slide Me");
+
+        $("#sliderRangeyear").slider({
+            min: 1970,
+            max:2010,
+            step:10,
+            value:1970
+
+        });
+        $("#selectorRange").on("change", function(e){
+
+            $("#sliderRangeyear").slider("option" , "step" ,  Number($("#selectorRange").val()));
+            $("#sliderRangeyear").slider("option" , "value" , 1970);
+
+        })
+
 
         // Slider for magnitude
         $( "#sliderMagnitude" ).slider({
@@ -455,20 +487,29 @@ require([
 
         });
 
-//        $(".ui-slider-range.ui-widget-header.ui-corner-all").draggable({
-//            axis: "x",
-//            start: function(e, ui){
-//                console.log(ui)
-//                $("#slider").slider("option" , "min" ,  ui.offset.left + 100000)
-//            },
-//            stop: function(){
-//
-//            }
+//        $('.ui-slider-range.ui-widget-header.ui-corner-all').mousedown(function(e) {
+//            $('#slider').slider().trigger(e);
 //        });
+
+        $(".ui-slider-range.ui-widget-header.ui-corner-all").draggable({
+            axis: "x",
+            start: function(e, ui){
+                //$('#slider').trigger(e);
+//                console.log(ui)
+                $("#slider").slider("option" , "values" ,  [666403200000, 1092339200000])
+            },
+            stop: function(){
+
+            }
+        });
     });
     function sortresults(){
 
         var byYear = $("#slider").slider("option" , "values");
+
+        //console.log(defaultYearSlider);
+
+
         var byMagn = $("#sliderMagnitude").slider("option" , "values");
         d3.selectAll("#earthquakes_layer path").each(function(d,i){
 
@@ -576,7 +617,8 @@ require([
 <div class="container">
     <div class="row col-md-6">
 
-            <h4 title="This layer represents all the earthquakes around the word from 1970 to 2009 classed by magnitude" >
+
+            <h4> <input id="year1" type="checkbox" checked>
                 Select by Years
                 <span title="Select a year range to sort the data (from 1970 to 2009)" class="glyphicon glyphicon-info-sign" aria-hidden="true">
                 </span>
@@ -592,6 +634,30 @@ require([
             </div>
 
         <br/>
+
+            <h4> <input id="year2" type="checkbox">
+                Slider between Years ranges
+                <span title="Select a year range to sort the data (from 1970 to 2009)" class="glyphicon glyphicon-info-sign" aria-hidden="true">
+                </span>
+            </h4>
+
+            <select id="selectorRange">
+                <option value="10">10 years</option>
+                <option value="5">5 years</option>
+                <option value="2">2 years</option>
+                <option value="1">1 year</option>
+            </select>
+        <br/>
+        <br/>
+
+
+
+            <div class="row col-sm-12">
+                <div id="sliderRangeyear"></div>
+            </div>
+
+        <br/>
+
             <h4>
                 Select by Magnitude
                 <span title="Select a magnitude range to sort the data (from 0 to 5)" class="glyphicon glyphicon-info-sign" aria-hidden="true">
