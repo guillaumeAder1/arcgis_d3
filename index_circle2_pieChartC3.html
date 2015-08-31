@@ -16,6 +16,7 @@
 <script src="js/bootstrap.min.js"></script>
 
 <link rel="stylesheet" href="css/circlesd3.css" />
+<link href='https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css'>
 
 <style>
     html, body, #map {
@@ -50,6 +51,7 @@
     }
 
     .glyphicon{
+        margin-left:5px;
         padding:3px;
         border: 1px solid #696767;
         border-radius: 3px;
@@ -61,6 +63,13 @@
     }
 
     .btn{ width: 120px;}
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Open Sans Condensed', sans-serif;
+    }
+    body{
+        font-family: 11px;
+    }
 
 </style>
 
@@ -386,18 +395,12 @@ require([
     }
 
     earthquakes.on("load", function(){
-alert("load")
+
     });
     earthquakes.on("graphic-draw" , function(e){
-       // alert("graphic draw")
-       // console.log(e)
 
     })
     earthquakes.on("update-start" , function(e){
-//alert("okok")
-        alert("update start")
-
-        //d3.selectAll("#earthquakes_layer path").style("opacity" , 0);
 
     });
     earthquakes.on("update-end" , function(){
@@ -430,8 +433,10 @@ alert("load")
             stop:function(evt,ui){
                 sortresults();
             }
-
         });
+        $( "#slider" ).slider().find(".ui-slider-handle")
+                .attr("title", "Slide Me");
+
         // Slider for magnitude
         $( "#sliderMagnitude" ).slider({
             range:true,
