@@ -75,9 +75,8 @@
         opacity:0;
         padding:10px;
 
-
         /*width : 200px;*/
-        height:115px;
+        /*height:155px;*/
         position:absolute;
         bottom:0px;
         top: auto;
@@ -166,6 +165,7 @@ require([
         })
 
         on(earthquakes, "graphic-draw", function (evt) {
+            console.log(evt.graphic)
             var attrs = evt.graphic.attributes,
                     Magnitude = (attrs && attrs.Magnitude) || undefined,
                     range;
@@ -173,6 +173,7 @@ require([
             var d =  new Date(attrs.Date_);
 
             evt.node.setAttribute("data-classification", range);
+            evt.node.setAttribute("data-coordinate", evt.graphic.geometry.x + "/" + evt.graphic.geometry.y );
             evt.node.setAttribute("data-value", attrs.Magnitude);
             evt.node.setAttribute("data-date",  d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear());
             evt.node.setAttribute("data-dateTimestamp", attrs.Date_);
@@ -360,40 +361,21 @@ require([
         data.value = d3.select(node).attr("data-value");
         data.date = d3.select(node).attr("data-date");
         data.classification = d3.select(node).attr("data-classification");
+        data.coord = d3.select(node).attr("data-coordinate").split("/");
 
-
-       // $("#detailsDiv").css()
         d3.select("#detailsDiv").transition().duration(250).style("opacity" , 0)
                 .each("end", function(){
                     $("#dateSpan").text(data.date);
                     $("#magnitudeSpan").text(data.value);
                     $("#classificationSpan").text(data.classification);
+                    $("#xcoord").text(data.coord[0]);
+                    $("#ycoord").text(data.coord[1]);
+
                 })
                 .transition().duration(500).style("opacity" , 1);
-
-//        popupDetailsContainer = d3.select("#popupDetails").attr("x" , Number(position[0]) + 10 )
-//                .attr("y" , Number(position[1]) - 20)
-//                .attr("width" , 150)
-//                .attr("height" , 30)
-//                .style("opacity" , 0)
-//                .attr("fill" , "black").transition().duration(500)
-//                .style("opacity" , 0.3);
-//
-//        popupDetailsText = d3.select("#popupDetailsText").attr("x" , Number(position[0]) + 20)
-//                .attr("y" , Number(position[1]))
-//                .attr("fill" , "#D2D2D2")
-//                .style("opacity" , 0)
-//                .text( "Date : " +  data.date ).transition().duration(500)
-//                .style("opacity" , 0.6);
-
-
     }
 
     function animatedCircle(node , position){
-
-        // var el = d3.select(node).attr("data-classification");
-//                var position = d3.select(node).attr("path").split(" ");
-//                position = position[1].split(",");
 
         var color = d3.select(node).style("fill")
 
@@ -408,7 +390,6 @@ require([
 
         if(d3.select(node).style("opacity") == 1){
             repeat();
-
         }
 
         function repeat (){
@@ -434,7 +415,6 @@ require([
 
     })
     $(document).ready(function(){
-        // slider control Date
 
         $("span.glyphicon").tooltip();
 
@@ -444,13 +424,7 @@ require([
 
             },
             slide: function( event, ui ) {
-                // when value change
-                // - Update circle opcaity on the map
-                // - update the pie chart
-               // sortbyYear(ui);
-
                 sortresults();
-
                 updateRangeYear();
                 dataPiechart();
             },
@@ -472,8 +446,6 @@ require([
             },
             slide: function( event, ui ) {
                 sortresults();
-
-                //sortbyMagnitude(ui);
             },
             stop: function(){
                 sortresults();
@@ -496,7 +468,6 @@ require([
     });
     function sortresults(){
 
-        //console.log($("#slider").slider("option" , "values") , $("#sliderMagnitude").slider("option" , "values"))
         var byYear = $("#slider").slider("option" , "values");
         var byMagn = $("#sliderMagnitude").slider("option" , "values");
         d3.selectAll("#earthquakes_layer path").each(function(d,i){
@@ -510,10 +481,7 @@ require([
             } else {
                 d3.select(this).transition().duration(250).style("opacity" , 1);
             }
-
         })
-
-
     }
 
     function convertDate(time){
@@ -589,6 +557,10 @@ require([
                 <span>Magnitude : </span><span id="magnitudeSpan"></span>
                 <br/>
                 <span>Class : </span><span id="classificationSpan"></span>
+                <h4><strong>Coordinates</strong></h4>
+                <span>X : </span><span id="xcoord"></span>
+                <br/>
+                <span>Y : </span><span id="ycoord"></span>
             </div>
 
 
@@ -626,11 +598,6 @@ require([
                 </span>
 
             </h4>
-
-
-
-
-
 
             <div id="rangeMagnitude"></div>
             <br/>
