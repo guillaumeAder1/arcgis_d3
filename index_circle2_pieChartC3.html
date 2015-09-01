@@ -534,7 +534,7 @@ require([
         var byYear2 = $("#sliderRangeyear").slider("option" , "value");
         var byYear2step = $("#sliderRangeyear").slider("option" , "step");
 
-        if(defaultYearSlider.id == "year1"){
+        if(defaultYearSlider.id == "year1" || defaultYearSlider.attr("id") == "year1"){
             console.log(defaultYearSlider)
             byYear = $("#slider").slider("option" , "values");
 

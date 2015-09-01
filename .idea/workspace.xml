@@ -39,11 +39,11 @@
       <file leaf-file-name="index_circle2_pieChartC3.html" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/index_circle2_pieChartC3.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.27238336" vertical-offset="12696" max-vertical-offset="17664">
-              <caret line="538" column="18" selection-start-line="538" selection-start-column="12" selection-end-line="538" selection-end-column="18" />
+            <state vertical-scroll-proportion="0.5750315" vertical-offset="12408" max-vertical-offset="17664">
+              <caret line="536" column="84" selection-start-line="536" selection-start-column="84" selection-end-line="536" selection-end-column="84" />
               <folding>
-                <element signature="e#17979#18653#0" expanded="false" />
-                <element signature="e#18682#19317#0" expanded="false" />
+                <element signature="e#18022#18696#0" expanded="false" />
+                <element signature="e#18725#19360#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -323,8 +323,8 @@
         <state vertical-scroll-proportion="0.0" vertical-offset="9945" max-vertical-offset="17112">
           <caret line="430" column="50" selection-start-line="430" selection-start-column="50" selection-end-line="430" selection-end-column="50" />
           <folding>
-            <element signature="e#17979#18653#0" expanded="false" />
-            <element signature="e#18682#19317#0" expanded="false" />
+            <element signature="e#18022#18696#0" expanded="false" />
+            <element signature="e#18725#19360#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -345,8 +345,8 @@
         <state vertical-scroll-proportion="0.0" vertical-offset="8784" max-vertical-offset="16320">
           <caret line="366" column="9" selection-start-line="363" selection-start-column="8" selection-end-line="366" selection-end-column="9" />
           <folding>
-            <element signature="e#17979#18653#0" expanded="false" />
-            <element signature="e#18682#19317#0" expanded="false" />
+            <element signature="e#18022#18696#0" expanded="false" />
+            <element signature="e#18725#19360#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -364,8 +364,8 @@
         <state vertical-scroll-proportion="0.0" vertical-offset="6319" max-vertical-offset="14328">
           <caret line="291" column="24" selection-start-line="291" selection-start-column="16" selection-end-line="291" selection-end-column="24" />
           <folding>
-            <element signature="e#17979#18653#0" expanded="false" />
-            <element signature="e#18682#19317#0" expanded="false" />
+            <element signature="e#18022#18696#0" expanded="false" />
+            <element signature="e#18725#19360#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -596,11 +596,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index_circle2_pieChartC3.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.27238336" vertical-offset="12696" max-vertical-offset="17664">
-          <caret line="538" column="18" selection-start-line="538" selection-start-column="12" selection-end-line="538" selection-end-column="18" />
+        <state vertical-scroll-proportion="0.5750315" vertical-offset="12408" max-vertical-offset="17664">
+          <caret line="536" column="84" selection-start-line="536" selection-start-column="84" selection-end-line="536" selection-end-column="84" />
           <folding>
-            <element signature="e#17979#18653#0" expanded="false" />
-            <element signature="e#18682#19317#0" expanded="false" />
+            <element signature="e#18022#18696#0" expanded="false" />
+            <element signature="e#18725#19360#0" expanded="false" />
           </folding>
         </state>
       </provider>
