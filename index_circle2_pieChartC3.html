@@ -412,29 +412,45 @@ require([
     earthquakes.on("update-start" , function(e){
 
     });
+
     earthquakes.on("update-end" , function(){
 
         initSlider();
         sortresults();
 
     })
+    var defaultYearSlider = document.getElementById("year1");
     $(document).ready(function(){
 
         $("span.glyphicon").tooltip();
 
-        var defaultYearSlider = $('#year1');
 
-        $("checkbox").on("click", function(){
-            alert("okok")
-            var ckbox = $('#year1');
-            if (ckbox.is(':checked')) {
-                $("#year2").removeAttr("checked");
-                defaultYearSlider = $('#year1');
-            } else {
-                ckbox.removeAttr("checked");
-                defaultYearSlider = $('#year2');
+        $("#year1").prop("checked" , true);
+        $("#year2div").css("opacity", 0.5)
+
+        $('input[type="checkbox"]').on("change", function(e){
+
+            if($(this).attr("id") == "year1" ){
+                $("#year2").prop("checked" , !this.checked);
+            } else if($(this).attr("id") == "year2"){
+                $("#year1").prop("checked" , !this.checked);
             }
-        })
+
+            if($("#year1").prop("checked") == true){
+                defaultYearSlider = $("#year1");
+                d3.select("#year2div").transition().duration(400).style("opacity" , 0.5);
+                d3.select("#year1div").transition().duration(400).style("opacity" , 1);
+            }else if($("#year2").prop("checked") == true){
+                defaultYearSlider = $("#year2");
+                d3.select("#year1div").transition().duration(400).style("opacity" , 0.5);
+                d3.select("#year2div").transition().duration(400).style("opacity" , 1);
+
+            }
+
+            sortresults();
+
+
+        });
 
 
         $( "#slider" ).slider({
@@ -456,11 +472,20 @@ require([
             min: 1970,
             max:2010,
             step:10,
-            value:1970
+            value:1970,
+            slide:function(e, ui){
+                sortresults();
+                updateValue2();
+            },
+            stop: function(e,ui){
+                sortresults();
+                updateValue2();
+
+            }
 
         });
         $("#selectorRange").on("change", function(e){
-
+            console.log(Number($("#selectorRange").val()))
             $("#sliderRangeyear").slider("option" , "step" ,  Number($("#selectorRange").val()));
             $("#sliderRangeyear").slider("option" , "value" , 1970);
 
@@ -505,9 +530,20 @@ require([
     });
     function sortresults(){
 
-        var byYear = $("#slider").slider("option" , "values");
+        var byYear;
+        var byYear2 = $("#sliderRangeyear").slider("option" , "value");
+        var byYear2step = $("#sliderRangeyear").slider("option" , "step");
 
-        //console.log(defaultYearSlider);
+        if(defaultYearSlider.id == "year1"){
+            console.log(defaultYearSlider)
+            byYear = $("#slider").slider("option" , "values");
+
+        }else {
+            byYear = [ convertdateToTimestamp($("#sliderRangeyear").slider("option" , "value")), convertdateToTimestamp($("#sliderRangeyear").slider("option" , "value") + $("#sliderRangeyear").slider("option" , "step")) ]
+            console.log($("#sliderRangeyear").slider("option" , "value"))
+        }
+
+        console.log(byYear );
 
 
         var byMagn = $("#sliderMagnitude").slider("option" , "values");
@@ -524,6 +560,13 @@ require([
             }
         })
     }
+    function convertdateToTimestamp(date){
+        var myDate = "02-01-" + date;
+        myDate = myDate.split("-");
+        var newDate = myDate[1]+"/"+myDate[0]+"/"+myDate[2];
+        return new Date(newDate).getTime()
+
+    }
 
     function convertDate(time){
         var d = new Date(time);
@@ -533,6 +576,12 @@ require([
     function updateRangeYear(){
         $("#globalrange").text("Global : from " + convertDate($("#slider").slider("option" , "min")) + " to " + convertDate($("#slider").slider("option" , "max")))
         $("#rangeyear").text("Selected : from " + convertDate($("#slider").slider("option" , "values")[0]) + " to " + convertDate($("#slider").slider("option" , "values")[1]))
+    }
+
+    function updateValue2(){
+        $("#year2start").text($("#sliderRangeyear").slider("option" , "value"));
+        $("#year2stop").text($("#sliderRangeyear").slider("option" , "value") + $("#sliderRangeyear").slider("option" , "step"));
+
     }
 
     function updateMagnSelected(){
@@ -581,7 +630,7 @@ require([
 <body>
 <div class="container">
     <div class="row col-sm-12">
-        <h1 >Earthquakes around the world - from 1970 to 2009</h1>
+        <h1>Earthquakes around the world - from 1970 to 2009</h1>
     </div>
 </div>
 <div>
@@ -617,8 +666,8 @@ require([
 <div class="container">
     <div class="row col-md-6">
 
-
-            <h4> <input id="year1" type="checkbox" checked>
+        <div id="year1div">
+            <h4> <input id="year1" type="checkbox" >
                 Select by Years
                 <span title="Select a year range to sort the data (from 1970 to 2009)" class="glyphicon glyphicon-info-sign" aria-hidden="true">
                 </span>
@@ -632,9 +681,10 @@ require([
             <div class="row col-sm-12">
                 <div id="slider"></div>
             </div>
+        </div>
 
         <br/>
-
+        <div id="year2div">
             <h4> <input id="year2" type="checkbox">
                 Slider between Years ranges
                 <span title="Select a year range to sort the data (from 1970 to 2009)" class="glyphicon glyphicon-info-sign" aria-hidden="true">
@@ -647,15 +697,19 @@ require([
                 <option value="2">2 years</option>
                 <option value="1">1 year</option>
             </select>
-        <br/>
-        <br/>
+            <br/>
+            <br/>
+
+            Analyse from <span id="year2start"> [  ] </span> to <span id="year2stop"> [  ] </span>
 
 
+        <br/>
+        <br/>
 
             <div class="row col-sm-12">
                 <div id="sliderRangeyear"></div>
             </div>
-
+        </div>
         <br/>
 
             <h4>
