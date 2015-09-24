@@ -212,6 +212,15 @@ require([
     map.addLayer(earthquakes);
 
     function initPiechart(arrayData){
+        /*
+        * TODO
+        *
+        * fix pie chart when using second slider year...
+        *
+        *
+        * */
+
+
         d3.select("#pieChart").remove();
         d3.select("#piediv").append("svg").attr("id" , "pieChart");
 
@@ -241,6 +250,7 @@ require([
                     Class4: 'donut', // ADD
                     Class5: 'donut' // ADD
                 },
+                labels:true
 
             },
             color: {
@@ -271,10 +281,6 @@ require([
 
 
 
-        var p = new pieChart(arrayData , 50 , 30, 250 , 0 , 0 , "#pieChart" );
-        p.setAnimType(pieChart.CIRCULAR);
-        p.init();
-        p.hideLabel();
 
     }
 
@@ -300,8 +306,6 @@ require([
     function initSlider(){
 
         var dateList = [];
-
-
 
         if(sliderInited){
 
@@ -488,6 +492,7 @@ require([
             console.log(Number($("#selectorRange").val()))
             $("#sliderRangeyear").slider("option" , "step" ,  Number($("#selectorRange").val()));
             $("#sliderRangeyear").slider("option" , "value" , 1970);
+            sortresults();
 
         })
 
@@ -542,9 +547,6 @@ require([
             byYear = [ convertdateToTimestamp($("#sliderRangeyear").slider("option" , "value")), convertdateToTimestamp($("#sliderRangeyear").slider("option" , "value") + $("#sliderRangeyear").slider("option" , "step")) ]
             console.log($("#sliderRangeyear").slider("option" , "value"))
         }
-
-        console.log(byYear );
-
 
         var byMagn = $("#sliderMagnitude").slider("option" , "values");
         d3.selectAll("#earthquakes_layer path").each(function(d,i){
@@ -730,12 +732,12 @@ require([
     </div>
 
 <br/>
-    <!--  -->
+    <!-- PIE CHART -->
     <div class="row col-md-6">
         <div class="col-sm-6">
             <h4>
                 Current extend magnitude
-                <span title="This pie chart analyse the earthquakes by magnitude for the current extent visible on the map" class="glyphicon glyphicon-info-sign" aria-hidden="true">
+                <span title="This pie chart analyse the earthquakes by magnitude for the current extent visible on the map (Not using any specific period selected)" class="glyphicon glyphicon-info-sign" aria-hidden="true">
                 </span>
             </h4>
 
@@ -749,7 +751,9 @@ require([
                 <span title="this pie chart is a global analyse for all the earthquakes from 1970 to 2009 including all magnitude levels" class="glyphicon glyphicon-info-sign" aria-hidden="true">
                 </span>
             </h4>
-            <div id="chart"></div>
+            <div class="row col-sm-12">
+                <div id="chart"></div>
+            </div>
         </div>
 
     </div>
